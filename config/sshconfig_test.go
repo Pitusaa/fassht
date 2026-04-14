@@ -50,6 +50,9 @@ Host prod
 	if hosts[0].Port != "2222" {
 		t.Errorf("expected '2222', got '%s'", hosts[0].Port)
 	}
+	if hosts[0].IdentityFile != "~/.ssh/id_rsa" {
+		t.Errorf("expected '~/.ssh/id_rsa', got '%s'", hosts[0].IdentityFile)
+	}
 }
 
 func TestAppendSSHHost_AddsNewEntry(t *testing.T) {
