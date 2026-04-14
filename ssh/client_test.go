@@ -7,8 +7,6 @@ import (
 	fasshtssh "github.com/juanperetto/fassht/ssh"
 )
 
-// TestBuildAuthMethods verifies that the auth method builder handles
-// the password-only and key-file paths without panicking.
 func TestBuildAuthMethods_KeyFile(t *testing.T) {
 	host := config.SSHHost{
 		Name:         "test",
@@ -17,9 +15,10 @@ func TestBuildAuthMethods_KeyFile(t *testing.T) {
 		Port:         "22",
 		IdentityFile: "~/.ssh/id_rsa",
 	}
-	methods := fasshtssh.BuildAuthMethods(host)
-	// At least one method should be returned (even if the key doesn't exist,
-	// the builder returns an empty slice gracefully).
+	methods, agentConn := fasshtssh.BuildAuthMethods(host)
+	if agentConn != nil {
+		defer agentConn.Close()
+	}
 	_ = methods
 }
 
@@ -30,7 +29,10 @@ func TestBuildAuthMethods_NoKey_ReturnsEmpty(t *testing.T) {
 		User:     "user",
 		Port:     "22",
 	}
-	methods := fasshtssh.BuildAuthMethods(host)
+	methods, agentConn := fasshtssh.BuildAuthMethods(host)
+	if agentConn != nil {
+		defer agentConn.Close()
+	}
 	if methods == nil {
 		t.Error("expected non-nil slice")
 	}
