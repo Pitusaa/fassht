@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,14 +20,18 @@ func main() {
 	}
 
 	// Ensure ~/.config/fassht directory exists
-	cfgPath := config.DefaultAppConfigPath()
-	os.MkdirAll(cfgPath[:len(cfgPath)-len("/config.toml")], 0700)
+	if cfgPath := config.DefaultAppConfigPath(); cfgPath != "" {
+		if err := os.MkdirAll(filepath.Dir(cfgPath), 0700); err != nil {
+			fmt.Fprintf(os.Stderr, "error creating config directory: %v\n", err)
+			os.Exit(1)
+		}
+	}
 
 	model := tui.NewModel(appCfg)
 
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
-	// Handle SIGINT/SIGTERM to clean up temp files before exit
+	// Handle SIGINT/SIGTERM to gracefully shutdown the TUI
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
