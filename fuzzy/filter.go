@@ -22,11 +22,12 @@ func Filter(items []string, query string) []string {
 // isSubsequence returns true if every character of needle appears in haystack
 // in order.
 func isSubsequence(needle, haystack string) bool {
+	haystackRunes := []rune(haystack)
 	hi := 0
 	for _, c := range needle {
 		found := false
-		for hi < len(haystack) {
-			if rune(haystack[hi]) == c {
+		for hi < len(haystackRunes) {
+			if haystackRunes[hi] == c {
 				hi++
 				found = true
 				break

@@ -37,3 +37,11 @@ func TestFilter_NoMatch_ReturnsEmpty(t *testing.T) {
 		t.Errorf("expected 0 results, got %v", result)
 	}
 }
+
+func TestFilter_UnicodeSupport(t *testing.T) {
+	items := []string{"/home/josé/docs/config.yaml", "/home/user/file.txt"}
+	result := fuzzy.Filter(items, "josé")
+	if len(result) != 1 || result[0] != "/home/josé/docs/config.yaml" {
+		t.Errorf("expected unicode path match, got %v", result)
+	}
+}
