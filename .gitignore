@@ -1,0 +1,4 @@
+/fassht
+*.exe
+*.test
+/dist/
