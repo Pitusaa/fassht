@@ -22,41 +22,48 @@ type Client struct {
 }
 
 // BuildAuthMethods constructs SSH auth methods for the given host.
-// It tries the SSH agent first, then a key file if specified.
+// All available signers (agent + key files) are combined into a single
+// PublicKeys call to avoid the SSH protocol marking publickey as exhausted
+// after the agent returns zero keys.
 // agentConn is non-nil when an SSH agent connection was established;
 // callers must close it when done.
 func BuildAuthMethods(host config.SSHHost) ([]gossh.AuthMethod, net.Conn) {
-	var methods []gossh.AuthMethod
+	var signers []gossh.Signer
 	var agentConn net.Conn
 
-	// Try SSH agent
+	// Collect signers from SSH agent (if running and has identities)
 	if sock := os.Getenv("SSH_AUTH_SOCK"); sock != "" {
 		conn, err := net.Dial("unix", sock)
 		if err == nil {
 			agentConn = conn
-			methods = append(methods, gossh.PublicKeysCallback(agent.NewClient(conn).Signers))
+			if agentSigners, err := agent.NewClient(conn).Signers(); err == nil {
+				signers = append(signers, agentSigners...)
+			}
 		}
 	}
 
-	// Try identity file from SSH config
+	// Collect signer from explicit IdentityFile
 	if host.IdentityFile != "" {
-		if signer := loadKeySigner(expandTilde(host.IdentityFile)); signer != nil {
-			methods = append(methods, gossh.PublicKeys(signer))
+		if s := loadKeySigner(expandTilde(host.IdentityFile)); s != nil {
+			signers = append(signers, s)
 		}
 	}
 
-	// Fall back to default key locations (mirrors OpenSSH behaviour)
+	// Fall back to default key locations when no IdentityFile is set
 	if host.IdentityFile == "" {
 		home, _ := os.UserHomeDir()
 		for _, name := range []string{"id_ed25519", "id_ecdsa", "id_rsa"} {
-			if signer := loadKeySigner(filepath.Join(home, ".ssh", name)); signer != nil {
-				methods = append(methods, gossh.PublicKeys(signer))
+			if s := loadKeySigner(filepath.Join(home, ".ssh", name)); s != nil {
+				signers = append(signers, s)
 				break
 			}
 		}
 	}
 
-	return methods, agentConn
+	if len(signers) == 0 {
+		return nil, agentConn
+	}
+	return []gossh.AuthMethod{gossh.PublicKeys(signers...)}, agentConn
 }
 
 // Connect establishes an SSH+SFTP connection to the given host.
