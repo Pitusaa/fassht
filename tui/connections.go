@@ -113,6 +113,10 @@ func (m ConnectionsModel) updateAddForm(msg tea.KeyMsg) (ConnectionsModel, tea.C
 	switch msg.String() {
 	case "esc":
 		m.adding = false
+		for i := range m.inputs {
+			m.inputs[i].SetValue("")
+		}
+		m.focus = fieldName
 		return m, nil
 	case "tab", "down":
 		m.inputs[m.focus].Blur()

@@ -19,9 +19,8 @@ var (
 
 // BrowserModel is the second screen: fuzzy file picker.
 type BrowserModel struct {
-	host      config.SSHHost
-	client    *fasshtssh.Client
-	appConfig *config.AppConfig
+	host   config.SSHHost
+	client *fasshtssh.Client
 
 	allFiles []string
 	filtered []string
@@ -38,11 +37,10 @@ func NewBrowserModel(client *fasshtssh.Client, host config.SSHHost, appConfig *c
 	ti.Focus()
 
 	return BrowserModel{
-		host:      host,
-		client:    client,
-		appConfig: appConfig,
-		search:    ti,
-		loading:   true,
+		host:    host,
+		client:  client,
+		search:  ti,
+		loading: true,
 	}
 }
 
