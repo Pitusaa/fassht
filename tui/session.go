@@ -8,9 +8,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/juanperetto/fassht/config"
-	"github.com/juanperetto/fassht/editor"
-	fasshtssh "github.com/juanperetto/fassht/ssh"
+	"github.com/Pitusaa/fassht/config"
+	"github.com/Pitusaa/fassht/editor"
+	fasshtssh "github.com/Pitusaa/fassht/ssh"
 )
 
 var (

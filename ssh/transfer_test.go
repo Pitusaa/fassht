@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	fasshtssh "github.com/juanperetto/fassht/ssh"
+	fasshtssh "github.com/Pitusaa/fassht/ssh"
 )
 
 func TestTempFilePath_ContainsFilename(t *testing.T) {

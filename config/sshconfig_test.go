@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/juanperetto/fassht/config"
+	"github.com/Pitusaa/fassht/config"
 )
 
 func writeTempSSHConfig(t *testing.T, content string) string {

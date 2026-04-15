@@ -4,8 +4,8 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/juanperetto/fassht/config"
-	fasshtssh "github.com/juanperetto/fassht/ssh"
+	"github.com/Pitusaa/fassht/config"
+	fasshtssh "github.com/Pitusaa/fassht/ssh"
 )
 
 // State represents which screen is active.

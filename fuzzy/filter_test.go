@@ -3,7 +3,7 @@ package fuzzy_test
 import (
 	"testing"
 
-	"github.com/juanperetto/fassht/fuzzy"
+	"github.com/Pitusaa/fassht/fuzzy"
 )
 
 func TestFilter_EmptyQuery_ReturnsAll(t *testing.T) {

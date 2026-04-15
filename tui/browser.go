@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/juanperetto/fassht/config"
-	fasshtssh "github.com/juanperetto/fassht/ssh"
+	"github.com/Pitusaa/fassht/config"
+	fasshtssh "github.com/Pitusaa/fassht/ssh"
 )
 
 var (

@@ -8,8 +8,8 @@ import (
 	"syscall"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/juanperetto/fassht/config"
-	"github.com/juanperetto/fassht/tui"
+	"github.com/Pitusaa/fassht/config"
+	"github.com/Pitusaa/fassht/tui"
 )
 
 func main() {

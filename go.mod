@@ -1,4 +1,4 @@
-module github.com/juanperetto/fassht
+module github.com/Pitusaa/fassht
 
 go 1.26.2
 

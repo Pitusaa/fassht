@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/juanperetto/fassht/config"
+	"github.com/Pitusaa/fassht/config"
 	"github.com/pkg/sftp"
 	gossh "golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"

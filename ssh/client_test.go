@@ -3,8 +3,8 @@ package ssh_test
 import (
 	"testing"
 
-	"github.com/juanperetto/fassht/config"
-	fasshtssh "github.com/juanperetto/fassht/ssh"
+	"github.com/Pitusaa/fassht/config"
+	fasshtssh "github.com/Pitusaa/fassht/ssh"
 )
 
 func TestBuildAuthMethods_KeyFile(t *testing.T) {

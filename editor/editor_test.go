@@ -3,7 +3,7 @@ package editor_test
 import (
 	"testing"
 
-	"github.com/juanperetto/fassht/editor"
+	"github.com/Pitusaa/fassht/editor"
 )
 
 func TestResolve_UsesOverrideFirst(t *testing.T) {
