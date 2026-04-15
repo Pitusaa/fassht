@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/sftp"
 	gossh "golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 // Client wraps an SSH connection and an SFTP session.
@@ -81,10 +82,15 @@ func Connect(host config.SSHHost) (*Client, error) {
 	}
 
 	methods, agentConn := BuildAuthMethods(host)
+	hostKeyCallback, err := buildHostKeyCallback()
+	if err != nil && agentConn != nil {
+		agentConn.Close()
+		return nil, err
+	}
 	cfg := &gossh.ClientConfig{
 		User:            host.User,
 		Auth:            methods,
-		HostKeyCallback: gossh.InsecureIgnoreHostKey(), // TODO: replace with known_hosts in a future iteration
+		HostKeyCallback: hostKeyCallback,
 		Timeout:         10 * time.Second,
 	}
 
@@ -141,6 +147,23 @@ func loadKeySigner(path string) gossh.Signer {
 		return nil
 	}
 	return signer
+}
+
+// buildHostKeyCallback returns a callback that verifies the server's host key
+// against ~/.ssh/known_hosts. If the file does not exist, it falls back to
+// InsecureIgnoreHostKey with a warning — matching the behaviour of OpenSSH
+// when StrictHostKeyChecking=no is set for a first-time connection.
+func buildHostKeyCallback() (gossh.HostKeyCallback, error) {
+	home, _ := os.UserHomeDir()
+	knownHostsPath := filepath.Join(home, ".ssh", "known_hosts")
+	if _, err := os.Stat(knownHostsPath); os.IsNotExist(err) {
+		return gossh.InsecureIgnoreHostKey(), nil //nolint:gosec
+	}
+	cb, err := knownhosts.New(knownHostsPath)
+	if err != nil {
+		return nil, fmt.Errorf("load known_hosts: %w", err)
+	}
+	return cb, nil
 }
 
 func expandTilde(path string) string {

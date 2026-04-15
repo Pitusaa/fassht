@@ -78,7 +78,7 @@ func (c *Client) Download(remotePath, localPath string) error {
 	}
 	defer remote.Close()
 
-	local, err := os.Create(localPath)
+	local, err := os.OpenFile(localPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("create local file %s: %w", localPath, err)
 	}
