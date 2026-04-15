@@ -23,9 +23,10 @@ func TempFilePath(remotePath string) string {
 	return filepath.Join(os.TempDir(), fmt.Sprintf("fassht_%x_%s", hash[:6], name))
 }
 
-// ListFiles runs `find <basePath> -maxdepth 5 -type f` via SSH exec
-// and returns the results as FileEntry slice.
-func (c *Client) ListFiles(basePath string) ([]FileEntry, error) {
+// SearchFiles runs `find <basePath> -iname "*query*" -type f` on the remote
+// server and returns up to 200 matches. The query is sanitized to safe
+// filename characters before being embedded in the shell command.
+func (c *Client) SearchFiles(basePath, query string) ([]FileEntry, error) {
 	session, err := c.SSH.NewSession()
 	if err != nil {
 		return nil, fmt.Errorf("new session: %w", err)
@@ -34,11 +35,11 @@ func (c *Client) ListFiles(basePath string) ([]FileEntry, error) {
 
 	var out bytes.Buffer
 	session.Stdout = &out
-	cmd := fmt.Sprintf("find %s -maxdepth 5 -type f 2>/dev/null", basePath)
+	safe := sanitizeQuery(query)
+	cmd := fmt.Sprintf("find %s -iname '*%s*' -type f 2>/dev/null | head -200", basePath, safe)
 	if err := session.Run(cmd); err != nil {
-		// find returns exit code 1 on permission errors — that's OK
 		if out.Len() == 0 {
-			return nil, fmt.Errorf("list files: %w", err)
+			return nil, fmt.Errorf("search files: %w", err)
 		}
 	}
 
@@ -54,6 +55,19 @@ func (c *Client) ListFiles(basePath string) ([]FileEntry, error) {
 		})
 	}
 	return entries, nil
+}
+
+// sanitizeQuery keeps only characters that are safe to embed inside a shell
+// single-quoted glob pattern (alphanumeric, dot, dash, underscore, space).
+func sanitizeQuery(q string) string {
+	var sb strings.Builder
+	for _, r := range q {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') || r == '.' || r == '_' || r == '-' || r == ' ' {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
 }
 
 // Download fetches a remote file via SFTP and writes it to localPath.

@@ -89,6 +89,9 @@ func (m ConnectionsModel) Update(msg tea.Msg) (ConnectionsModel, tea.Cmd) {
 		if m.adding {
 			return m.updateAddForm(msg)
 		}
+		if m.list.FilterState() == list.Filtering {
+			break
+		}
 		switch msg.String() {
 		case "a":
 			m.adding = true

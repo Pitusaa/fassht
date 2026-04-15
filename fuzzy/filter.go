@@ -1,20 +1,53 @@
 package fuzzy
 
-import "strings"
+import (
+	"path/filepath"
+	"sort"
+	"strings"
+)
 
-// Filter returns items from the list whose path contains all characters of
-// query as a subsequence (case-insensitive).
-// If query is empty, all items are returned.
+// Filter returns items from the list that match query (case-insensitive),
+// ranked so that the most relevant matches appear first:
+//  1. Basename contains query as a substring
+//  2. Full path contains query as a substring
+//  3. Pure subsequence match
+//
+// If query is empty, all items are returned unchanged.
 func Filter(items []string, query string) []string {
 	if query == "" {
 		return items
 	}
 	q := strings.ToLower(query)
-	var result []string
+
+	type ranked struct {
+		item string
+		tier int // lower = better
+	}
+	var matches []ranked
 	for _, item := range items {
-		if isSubsequence(q, strings.ToLower(item)) {
-			result = append(result, item)
+		lower := strings.ToLower(item)
+		base := strings.ToLower(filepath.Base(item))
+		var tier int
+		switch {
+		case strings.Contains(base, q):
+			tier = 0
+		case strings.Contains(lower, q):
+			tier = 1
+		case isSubsequence(q, lower):
+			tier = 2
+		default:
+			continue
 		}
+		matches = append(matches, ranked{item, tier})
+	}
+
+	sort.SliceStable(matches, func(i, j int) bool {
+		return matches[i].tier < matches[j].tier
+	})
+
+	result := make([]string, len(matches))
+	for i, m := range matches {
+		result[i] = m.item
 	}
 	return result
 }

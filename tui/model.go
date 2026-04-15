@@ -73,8 +73,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.sshClient = nil
 		}
 		m.state = StateConnections
-		m.connections = NewConnectionsModel()
-		return m, m.connections.Init()
+		m.connections.connecting = false
+		m.connections.errMsg = ""
+		return m, nil
 	}
 
 	// Delegate to active screen
