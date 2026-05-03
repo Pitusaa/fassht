@@ -52,11 +52,13 @@ func BuildAuthMethods(host config.SSHHost) ([]gossh.AuthMethod, net.Conn) {
 
 	// Fall back to default key locations when no IdentityFile is set
 	if host.IdentityFile == "" {
-		home, _ := os.UserHomeDir()
-		for _, name := range []string{"id_ed25519", "id_ecdsa", "id_rsa"} {
-			if s := loadKeySigner(filepath.Join(home, ".ssh", name)); s != nil {
-				signers = append(signers, s)
-				break
+		home, err := os.UserHomeDir()
+		if err == nil {
+			for _, name := range []string{"id_ed25519", "id_ecdsa", "id_rsa"} {
+				if s := loadKeySigner(filepath.Join(home, ".ssh", name)); s != nil {
+					signers = append(signers, s)
+					break
+				}
 			}
 		}
 	}
@@ -154,7 +156,10 @@ func loadKeySigner(path string) gossh.Signer {
 // InsecureIgnoreHostKey with a warning — matching the behaviour of OpenSSH
 // when StrictHostKeyChecking=no is set for a first-time connection.
 func buildHostKeyCallback() (gossh.HostKeyCallback, error) {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return gossh.InsecureIgnoreHostKey(), nil //nolint:gosec
+	}
 	knownHostsPath := filepath.Join(home, ".ssh", "known_hosts")
 	if _, err := os.Stat(knownHostsPath); os.IsNotExist(err) {
 		return gossh.InsecureIgnoreHostKey(), nil //nolint:gosec
@@ -168,7 +173,10 @@ func buildHostKeyCallback() (gossh.HostKeyCallback, error) {
 
 func expandTilde(path string) string {
 	if strings.HasPrefix(path, "~/") {
-		home, _ := os.UserHomeDir()
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return path
+		}
 		return filepath.Join(home, path[2:])
 	}
 	return path

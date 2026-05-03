@@ -3,7 +3,7 @@ package tui
 import (
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/Pitusaa/fassht/config"
 	fasshtssh "github.com/Pitusaa/fassht/ssh"
 )
@@ -43,8 +43,11 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		if msg.String() == "ctrl+c" {
+			if m.state == StateSession {
+				CleanupTempFile(m.session.tempPath)
+			}
 			return m, tea.Quit
 		}
 
@@ -76,6 +79,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.connections.connecting = false
 		m.connections.errMsg = ""
 		return m, nil
+
+	case filesErrMsg:
+		m.state = StateBrowser
+		m.browser.errMsg = "Download failed: " + msg.err.Error()
+		return m, nil
 	}
 
 	// Delegate to active screen
@@ -97,7 +105,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
 	switch m.state {
 	case StateConnections:
 		return m.connections.View()
@@ -106,7 +114,9 @@ func (m Model) View() string {
 	case StateSession:
 		return m.session.View()
 	}
-	return ""
+	v := tea.NewView("")
+	v.AltScreen = true
+	return v
 }
 
 // --- Messages used for screen transitions ---

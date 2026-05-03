@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/list"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/Pitusaa/fassht/config"
 	fasshtssh "github.com/Pitusaa/fassht/ssh"
 )
@@ -50,7 +50,7 @@ type ConnectionsModel struct {
 }
 
 func NewConnectionsModel() ConnectionsModel {
-	hosts, _ := config.LoadSSHHosts()
+	hosts, err := config.LoadSSHHosts()
 	items := make([]list.Item, len(hosts))
 	for i, h := range hosts {
 		items[i] = hostItem{h}
@@ -70,7 +70,11 @@ func NewConnectionsModel() ConnectionsModel {
 	}
 	inputs[fieldName].Focus()
 
-	return ConnectionsModel{list: l, inputs: inputs}
+	m := ConnectionsModel{list: l, inputs: inputs}
+	if err != nil {
+		m.errMsg = "Error loading SSH config: " + err.Error()
+	}
+	return m
 }
 
 func (m ConnectionsModel) Init() tea.Cmd { return nil }
@@ -85,7 +89,7 @@ func (m ConnectionsModel) Update(msg tea.Msg) (ConnectionsModel, tea.Cmd) {
 		m.errMsg = msg.err.Error()
 		return m, nil
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		if m.adding {
 			return m.updateAddForm(msg)
 		}
@@ -112,7 +116,7 @@ func (m ConnectionsModel) Update(msg tea.Msg) (ConnectionsModel, tea.Cmd) {
 	return m, cmd
 }
 
-func (m ConnectionsModel) updateAddForm(msg tea.KeyMsg) (ConnectionsModel, tea.Cmd) {
+func (m ConnectionsModel) updateAddForm(msg tea.KeyPressMsg) (ConnectionsModel, tea.Cmd) {
 	switch msg.String() {
 	case "esc":
 		m.adding = false
@@ -183,7 +187,7 @@ func (m ConnectionsModel) saveNewHost() (ConnectionsModel, tea.Cmd) {
 	return m, nil
 }
 
-func (m ConnectionsModel) View() string {
+func (m ConnectionsModel) View() tea.View {
 	if m.adding {
 		return m.viewAddForm()
 	}
@@ -197,10 +201,12 @@ func (m ConnectionsModel) View() string {
 	} else {
 		sb.WriteString("\n" + dimStyle.Render("[a] add connection  [enter] connect  [q] quit"))
 	}
-	return sb.String()
+	v := tea.NewView(sb.String())
+	v.AltScreen = true
+	return v
 }
 
-func (m ConnectionsModel) viewAddForm() string {
+func (m ConnectionsModel) viewAddForm() tea.View {
 	var sb strings.Builder
 	sb.WriteString(titleStyle.Render("Add connection") + "\n\n")
 	labels := []string{"Name", "Hostname", "User", "Port", "Identity file"}
@@ -215,7 +221,9 @@ func (m ConnectionsModel) viewAddForm() string {
 		sb.WriteString("\n" + errorStyle.Render(m.errMsg))
 	}
 	sb.WriteString("\n" + dimStyle.Render("[tab] next  [shift+tab] prev  [enter] save  [esc] cancel"))
-	return sb.String()
+	v := tea.NewView(sb.String())
+	v.AltScreen = true
+	return v
 }
 
 // connectCmd is a Bubbletea command that dials SSH asynchronously.

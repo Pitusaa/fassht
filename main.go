@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/Pitusaa/fassht/config"
 	"github.com/Pitusaa/fassht/tui"
 )
@@ -29,7 +29,7 @@ func main() {
 
 	model := tui.NewModel(appCfg)
 
-	p := tea.NewProgram(model, tea.WithAltScreen())
+	p := tea.NewProgram(model)
 
 	// Handle SIGINT/SIGTERM to gracefully shutdown the TUI
 	sigCh := make(chan os.Signal, 1)
